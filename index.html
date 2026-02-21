@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Marker Generator</title>
+
+<link href="https://cdn.jsdelivr.net/gh/line/seed-jp@latest/seed-jp.css" rel="stylesheet">
+
+<style>
+:root {
+  --marker-color: #fff176;
+  --text-color: #000000;
+  --marker-height: 16px;
+  --marker-bottom: 6px;
+  --marker-left: -6px;
+  --marker-width: calc(100% + 12px);
+  --marker-radius: 10px;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: 'LINE Seed JP', sans-serif;
+  background: #f4f4f4;
+}
+
+/* UI共通 */
+select, button {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 14px;
+  border: 1px solid #ccc;
+  font-family: 'LINE Seed JP', sans-serif;
+}
+
+textarea {
+  width: 260px;
+  height: 80px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 14px;
+  border: 1px solid #ccc;
+  font-family: 'LINE Seed JP', sans-serif;
+  box-sizing: border-box;
+}
+
+input[type="text"] {
+  width: 80px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-family: 'LINE Seed JP', sans-serif;
+}
+
+input[type="number"] {
+  width: 70px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-family: 'LINE Seed JP', sans-serif;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.row label {
+  width: 90px;
+  font-size: 14px;
+}
+
+/* ===== 完全な丸カラーピッカー ===== */
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 50%;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+/* ボタン */
+button {
+  margin-top: 18px;
+  width: 260px;
+  cursor: pointer;
+  background: #000;
+  color: #fff;
+  border: none;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+/* プレビュー */
+.preview {
+  position: relative;
+  display: inline-block;
+  margin-top: 30px;
+  font-size: 28px;
+  padding: 0 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  color: var(--text-color);
+  font-family: 'LINE Seed JP', sans-serif;
+}
+
+.preview::after {
+  content: "";
+  position: absolute;
+  left: var(--marker-left);
+  bottom: var(--marker-bottom);
+  width: var(--marker-width);
+  height: var(--marker-height);
+  background: var(--marker-color);
+  border-radius: var(--marker-radius);
+  z-index: -1;
+}
+
+.preview:empty::after {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<h2>蛍光マーカーツール</h2>
+
+<textarea id="inputText" placeholder="ここに文字を入力"></textarea>
+
+<div class="row">
+  <label>マーカー色</label>
+  <input type="color" id="markerColorPicker" value="#fff176">
+  <input type="text" id="markerColorCode" value="#fff176">
+</div>
+
+<div class="row">
+  <label>文字色</label>
+  <input type="color" id="textColorPicker" value="#000000">
+  <input type="text" id="textColorCode" value="#000000">
+</div>
+
+<div class="row">
+  <label>太さ</label>
+  <input type="number" id="markerHeight" value="16">
+</div>
+
+<div class="row">
+  <label>位置</label>
+  <input type="number" id="markerBottom" value="6">
+</div>
+
+<div class="row">
+  <label>横拡張</label>
+  <input type="number" id="markerExpand" value="6">
+</div>
+
+<div class="row">
+  <label>丸み</label>
+  <input type="number" id="markerRadius" value="10">
+</div>
+
+<div class="row">
+  <label>文字太さ</label>
+  <select id="fontWeight">
+    <option value="400">Regular</option>
+    <option value="500">Medium</option>
+    <option value="600">SemiBold</option>
+    <option value="700">Bold</option>
+    <option value="800">ExtraBold</option>
+  </select>
+</div>
+
+<button onclick="generate()">生成</button>
+
+<div id="preview" class="preview"></div>
+
+<script>
+
+function generate() {
+
+  const text = document.getElementById("inputText").value;
+  const markerColor = document.getElementById("markerColorCode").value;
+  const textColor = document.getElementById("textColorCode").value;
+  const markerHeight = document.getElementById("markerHeight").value;
+  const markerBottom = document.getElementById("markerBottom").value;
+  const markerExpand = document.getElementById("markerExpand").value;
+  const markerRadius = document.getElementById("markerRadius").value;
+  const fontWeight = document.getElementById("fontWeight").value;
+
+  const preview = document.getElementById("preview");
+
+  preview.textContent = text;
+  preview.style.fontWeight = fontWeight;
+
+  document.documentElement.style.setProperty('--marker-color', markerColor);
+  document.documentElement.style.setProperty('--text-color', textColor);
+  document.documentElement.style.setProperty('--marker-height', markerHeight + "px");
+  document.documentElement.style.setProperty('--marker-bottom', markerBottom + "px");
+  document.documentElement.style.setProperty('--marker-radius', markerRadius + "px");
+  document.documentElement.style.setProperty('--marker-left', -markerExpand + "px");
+  document.documentElement.style.setProperty('--marker-width',
+    "calc(100% + " + (markerExpand * 2) + "px)");
+
+}
+
+</script>
+
+</body>
+</html>
