@@ -279,8 +279,7 @@ function generate() {
   document.documentElement.style.setProperty('--marker-radius', markerRadius.value + "px");
   document.documentElement.style.setProperty('--marker-offset', markerOffset.value + "px");
 
-  const url = location.origin + location.pathname + 
-　"?" + params.toString() + "&mode=embed";
+  updateUrl();
 }
 
 function updateUrl() {
@@ -298,7 +297,7 @@ function updateUrl() {
     borderWidth: markerBorderWidth.value
   });
 
-  const url = location.origin + location.pathname + "?" + params.toString();
+  const url = location.origin + location.pathname + "?" + params.toString() + "&mode=embed";
   history.replaceState(null, "", url);
   document.getElementById("generatedUrl").value = url;
 }
@@ -328,14 +327,14 @@ function loadFromUrl() {
   generate();
 }
 
-/* ===== ここが今回の追加部分 ===== */
 function applyMode() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("mode") === "embed") {
     document.getElementById("mainContainer").style.display = "none";
-    document.body.style.padding = "40px";
+    document.body.style.background = "transparent";
     document.body.style.display = "flex";
     document.body.style.justifyContent = "center";
+    document.body.style.alignItems = "center";
     document.body.appendChild(preview);
   }
 }
@@ -365,4 +364,3 @@ applyMode();
 
 </body>
 </html>
-
