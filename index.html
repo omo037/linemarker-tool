@@ -279,7 +279,8 @@ function generate() {
   document.documentElement.style.setProperty('--marker-radius', markerRadius.value + "px");
   document.documentElement.style.setProperty('--marker-offset', markerOffset.value + "px");
 
-  updateUrl();
+  const url = location.origin + location.pathname + 
+　"?" + params.toString() + "&mode=embed";
 }
 
 function updateUrl() {
@@ -364,3 +365,4 @@ applyMode();
 
 </body>
 </html>
+
