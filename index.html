@@ -297,7 +297,7 @@ function updateUrl() {
     borderWidth: markerBorderWidth.value
   });
 
-  const url = location.origin + location.pathname + "?" + params.toString() + "&mode=embed";
+  const url = location.origin + location.pathname + "?" + params.toString();
   history.replaceState(null, "", url);
   document.getElementById("generatedUrl").value = url;
 }
@@ -327,14 +327,14 @@ function loadFromUrl() {
   generate();
 }
 
+/* ===== ここが今回の追加部分 ===== */
 function applyMode() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("mode") === "embed") {
     document.getElementById("mainContainer").style.display = "none";
-    document.body.style.background = "transparent";
+    document.body.style.padding = "40px";
     document.body.style.display = "flex";
     document.body.style.justifyContent = "center";
-    document.body.style.alignItems = "center";
     document.body.appendChild(preview);
   }
 }
