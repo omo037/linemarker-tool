@@ -1,0 +1,390 @@
+<!DOCTYPE html> 
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+
+<!-- ページのタイトル（ブラウザタブに表示される） -->
+<title>Advanced Marker Generator</title>
+
+<style>
+
+/* ===== CSS変数エリア =====
+   全体で使う色やサイズをまとめて管理する場所
+   JSからここを書き換えることでデザインが変わる
+*/
+:root {
+  --marker-color: #fff176;           /* マーカー色 */
+  --marker-border-color: #ff9800;    /* マーカーの縁色 */
+  --marker-border-width: 2px;        /* 縁の太さ */
+  --text-color: #000000;             /* 文字色 */
+  --marker-height: 16px;             /* マーカー高さ */
+  --marker-expand: 6px;              /* 横拡張 */
+  --marker-radius: 10px;             /* 角丸 */
+  --font-size: 28px;                 /* 文字サイズ */
+  --marker-offset: 0px;              /* 上下位置調整 */
+}
+
+/* ページ全体の基本デザイン */
+body {
+  margin: 0;
+  padding: 40px;
+  font-family: "Segoe UI", sans-serif;
+  background: #fafafa;
+}
+
+/* 設定エリアの箱 */
+.container {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 各設定の1行 */
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting label {
+  font-size: 14px;
+  margin-right: 20px;
+}
+
+/* テキスト入力欄 */
+textarea {
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+input[type="text"] {
+  width: 80px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+}
+
+input[type="number"] {
+  width: 70px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+}
+
+select {
+  width: 110px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+}
+
+/* カラーピッカーの見た目調整 */
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;              
+  height: 20px;              
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  background: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 8px;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 8px;
+}
+
+/* 区切り線 */
+.divider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 8px 0;
+}
+
+/* ===== プレビュー文字 ===== */
+.preview {
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  display: inline-block;
+  font-size: var(--font-size);
+  padding: 0 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: none;
+  text-align: center;
+  color: var(--text-color);
+  font-family: inherit;
+}
+
+/* マーカー本体（擬似要素で作っている） */
+.preview::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, calc(-50% + var(--marker-offset)));
+  width: calc(100% + var(--marker-expand) * 2);
+  height: var(--marker-height);
+  background: var(--marker-color);
+  border-radius: var(--marker-radius);
+  border: var(--marker-border-width) solid var(--marker-border-color);
+  z-index: -1;
+}
+
+/* 文字が空ならマーカーを非表示 */
+.preview:empty::after {
+  display: none;
+}
+
+/* ===== URL表示エリア ===== */
+.url-container {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+/* URLテキスト欄 */
+.url-container input {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  font-size: 12px;
+  outline: none;
+  background: transparent;
+}
+
+/* コピー用ボタン */
+.url-container button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  
+<h2>Marker Tool</h2>
+  
+<!-- 入力文字 -->
+<textarea id="inputText" placeholder="ここに文字を入力"></textarea>
+
+<div class="setting">
+  <label>Text color</label>
+  <div>
+    <input type="color" id="textColorPicker" value="#000000">
+    <input type="text" id="textColorCode" value="#000000">
+  </div>
+</div>
+
+<div class="setting">
+  <label>Text size</label>
+  <input type="number" id="fontSize" value="28">
+</div>
+
+<div class="setting">
+  <label>Text weight</label>
+  <select id="fontWeight">
+    <option value="400">Regular</option>
+    <option value="500">Medium</option>
+    <option value="600">SemiBold</option>
+    <option value="700">Bold</option>
+    <option value="800">ExtraBold</option>
+  </select>
+</div>
+
+<div class="divider"></div>
+
+<div class="setting">
+  <label>Marker Color</label>
+  <div>
+    <input type="color" id="markerColorPicker" value="#fff176">
+    <input type="text" id="markerColorCode" value="#fff176">
+  </div>
+</div>
+
+<div class="setting">
+  <label>Marker Height</label>
+  <input type="number" id="markerHeight" value="16">
+</div>
+
+<div class="setting">
+  <label>Marker Width</label>
+  <input type="number" id="markerExpand" value="6">
+</div>
+
+<div class="setting">
+  <label>Marker Radius</label>
+  <input type="number" id="markerRadius" value="10">
+</div>
+
+<div class="setting">
+  <label>Marker Position</label>
+  <input type="number" id="markerOffset" value="0">
+</div>
+
+<div class="setting">
+  <label>Edge Color</label>
+  <div>
+    <input type="color" id="markerBorderPicker" value="#ff9800">
+    <input type="text" id="markerBorderCode" value="#ff9800">
+  </div>
+</div>
+
+<div class="setting">
+  <label>Edge Height</label>
+  <input type="number" id="markerBorderWidth" value="2">
+</div>
+
+<div id="preview" class="preview"></div>
+
+<!-- URL自動生成エリア -->
+<div class="url-container">
+  <input type="text" id="generatedUrl" readonly>
+  <button onclick="copyUrl()">📋</button>
+</div>
+
+</div>
+
+<script>
+
+/* ===== メイン更新関数 =====
+   すべての入力変更時に呼ばれる
+*/
+function generate() {
+
+  /* プレビュー文字更新 */
+  preview.textContent = inputText.value;
+  preview.style.fontWeight = fontWeight.value;
+
+  /* CSS変数を書き換えて見た目を変更 */
+  document.documentElement.style.setProperty('--font-size', fontSize.value + "px");
+  document.documentElement.style.setProperty('--marker-color', markerColorCode.value);
+  document.documentElement.style.setProperty('--marker-border-color', markerBorderCode.value);
+  document.documentElement.style.setProperty('--marker-border-width', markerBorderWidth.value + "px");
+  document.documentElement.style.setProperty('--text-color', textColorCode.value);
+  document.documentElement.style.setProperty('--marker-height', markerHeight.value + "px");
+  document.documentElement.style.setProperty('--marker-expand', markerExpand.value + "px");
+  document.documentElement.style.setProperty('--marker-radius', markerRadius.value + "px");
+  document.documentElement.style.setProperty('--marker-offset', markerOffset.value + "px");
+
+  /* URLも同時更新 */
+  updateUrl();
+}
+
+/* ===== URL生成処理 ===== */
+function updateUrl() {
+
+  /* 現在の状態をパラメータ化 */
+  const params = new URLSearchParams({
+    text: inputText.value,
+    size: fontSize.value,
+    weight: fontWeight.value,
+    textColor: textColorCode.value,
+    markerColor: markerColorCode.value,
+    markerHeight: markerHeight.value,
+    markerExpand: markerExpand.value,
+    markerRadius: markerRadius.value,
+    markerOffset: markerOffset.value,
+    borderColor: markerBorderCode.value,
+    borderWidth: markerBorderWidth.value
+  });
+
+  /* 現在のページURL + パラメータ */
+  const url = location.origin + location.pathname + "?" + params.toString();
+
+  /* URLを書き換え（ページはリロードしない） */
+  history.replaceState(null, "", url);
+
+  /* 表示欄に反映 */
+  document.getElementById("generatedUrl").value = url;
+}
+
+/* ===== コピー処理 ===== */
+function copyUrl() {
+  navigator.clipboard.writeText(
+    document.getElementById("generatedUrl").value
+  );
+}
+
+function loadFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.toString()) return;
+
+  inputText.value = params.get("text") || "";
+  fontSize.value = params.get("size") || 28;
+  fontWeight.value = params.get("weight") || 400;
+  textColorCode.value = params.get("textColor") || "#000000";
+  markerColorCode.value = params.get("markerColor") || "#fff176";
+  markerHeight.value = params.get("markerHeight") || 16;
+  markerExpand.value = params.get("markerExpand") || 6;
+  markerRadius.value = params.get("markerRadius") || 10;
+  markerOffset.value = params.get("markerOffset") || 0;
+  markerBorderCode.value = params.get("borderColor") || "#ff9800";
+  markerBorderWidth.value = params.get("borderWidth") || 2;
+
+  generate();
+}
+
+/* 入力が変わるたびにgenerate実行 */
+document.querySelectorAll("input, select, textarea").forEach(el=>{
+  el.addEventListener("input", generate);
+});
+
+[
+ ["markerColorPicker","markerColorCode"],
+ ["markerBorderPicker","markerBorderCode"],
+ ["textColorPicker","textColorCode"]
+].forEach(([p,c])=>{
+  document.getElementById(p).addEventListener("input",()=>{
+    document.getElementById(c).value=document.getElementById(p).value;
+  });
+  document.getElementById(c).addEventListener("input",()=>{
+    document.getElementById(p).value=document.getElementById(c).value;
+  });
+});
+
+/* 初期表示時に一度実行 */
+generate();
+loadFromUrl();
+</script>
+
+</body>
+</html>
+
