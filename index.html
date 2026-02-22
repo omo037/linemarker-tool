@@ -3,28 +3,22 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- ページのタイトル（ブラウザタブに表示される） -->
 <title>Advanced Marker Generator</title>
 
 <style>
 
-/* ===== CSS変数エリア =====
-   全体で使う色やサイズをまとめて管理する場所
-   JSからここを書き換えることでデザインが変わる
-*/
 :root {
-  --marker-color: #fff176;           /* マーカー色 */
-  --marker-border-color: #ff9800;    /* マーカーの縁色 */
-  --marker-border-width: 2px;        /* 縁の太さ */
-  --text-color: #000000;             /* 文字色 */
-  --marker-height: 16px;             /* マーカー高さ */
-  --marker-expand: 6px;              /* 横拡張 */
-  --marker-radius: 10px;             /* 角丸 */
-  --font-size: 28px;                 /* 文字サイズ */
-  --marker-offset: 0px;              /* 上下位置調整 */
+  --marker-color: #fff176;
+  --marker-border-color: #ff9800;
+  --marker-border-width: 2px;
+  --text-color: #000000;
+  --marker-height: 16px;
+  --marker-expand: 6px;
+  --marker-radius: 10px;
+  --font-size: 28px;
+  --marker-offset: 0px;
 }
 
-/* ページ全体の基本デザイン */
 body {
   margin: 0;
   padding: 40px;
@@ -32,7 +26,6 @@ body {
   background: #fafafa;
 }
 
-/* 設定エリアの箱 */
 .container {
   width: 320px;
   display: flex;
@@ -40,7 +33,6 @@ body {
   gap: 18px;
 }
 
-/* 各設定の1行 */
 .setting {
   display: flex;
   align-items: center;
@@ -52,7 +44,6 @@ body {
   margin-right: 20px;
 }
 
-/* テキスト入力欄 */
 textarea {
   width: 100%;
   height: 80px;
@@ -88,12 +79,11 @@ select {
   font-family: inherit;
 }
 
-/* カラーピッカーの見た目調整 */
 input[type="color"] {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;              
-  height: 20px;              
+  width: 20px;
+  height: 20px;
   box-sizing: border-box;
   padding: 0;
   border-radius: 10px;
@@ -116,14 +106,12 @@ input[type="color"]::-moz-color-swatch {
   border-radius: 8px;
 }
 
-/* 区切り線 */
 .divider {
   height: 1px;
   background: #e5e5e5;
   margin: 8px 0;
 }
 
-/* ===== プレビュー文字 ===== */
 .preview {
   margin-top: 20px;
   margin-left: auto;
@@ -141,7 +129,6 @@ input[type="color"]::-moz-color-swatch {
   font-family: inherit;
 }
 
-/* マーカー本体（擬似要素で作っている） */
 .preview::after {
   content: "";
   position: absolute;
@@ -156,12 +143,10 @@ input[type="color"]::-moz-color-swatch {
   z-index: -1;
 }
 
-/* 文字が空ならマーカーを非表示 */
 .preview:empty::after {
   display: none;
 }
 
-/* ===== URL表示エリア ===== */
 .url-container {
   margin-top: 12px;
   display: flex;
@@ -172,7 +157,6 @@ input[type="color"]::-moz-color-swatch {
   background: #ffffff;
 }
 
-/* URLテキスト欄 */
 .url-container input {
   flex: 1;
   border: none;
@@ -182,7 +166,6 @@ input[type="color"]::-moz-color-swatch {
   background: transparent;
 }
 
-/* コピー用ボタン */
 .url-container button {
   width: 42px;
   height: 42px;
@@ -198,11 +181,10 @@ input[type="color"]::-moz-color-swatch {
 
 <body>
 
-<div class="container">
+<div class="container" id="mainContainer">
   
 <h2>Marker Tool</h2>
   
-<!-- 入力文字 -->
 <textarea id="inputText" placeholder="ここに文字を入力"></textarea>
 
 <div class="setting">
@@ -274,8 +256,7 @@ input[type="color"]::-moz-color-swatch {
 
 <div id="preview" class="preview"></div>
 
-<!-- URL自動生成エリア -->
-<div class="url-container">
+<div class="url-container" id="urlContainer">
   <input type="text" id="generatedUrl" readonly>
   <button onclick="copyUrl()">📋</button>
 </div>
@@ -284,16 +265,10 @@ input[type="color"]::-moz-color-swatch {
 
 <script>
 
-/* ===== メイン更新関数 =====
-   すべての入力変更時に呼ばれる
-*/
 function generate() {
-
-  /* プレビュー文字更新 */
   preview.textContent = inputText.value;
   preview.style.fontWeight = fontWeight.value;
 
-  /* CSS変数を書き換えて見た目を変更 */
   document.documentElement.style.setProperty('--font-size', fontSize.value + "px");
   document.documentElement.style.setProperty('--marker-color', markerColorCode.value);
   document.documentElement.style.setProperty('--marker-border-color', markerBorderCode.value);
@@ -304,14 +279,10 @@ function generate() {
   document.documentElement.style.setProperty('--marker-radius', markerRadius.value + "px");
   document.documentElement.style.setProperty('--marker-offset', markerOffset.value + "px");
 
-  /* URLも同時更新 */
   updateUrl();
 }
 
-/* ===== URL生成処理 ===== */
 function updateUrl() {
-
-  /* 現在の状態をパラメータ化 */
   const params = new URLSearchParams({
     text: inputText.value,
     size: fontSize.value,
@@ -326,17 +297,11 @@ function updateUrl() {
     borderWidth: markerBorderWidth.value
   });
 
-  /* 現在のページURL + パラメータ */
   const url = location.origin + location.pathname + "?" + params.toString();
-
-  /* URLを書き換え（ページはリロードしない） */
   history.replaceState(null, "", url);
-
-  /* 表示欄に反映 */
   document.getElementById("generatedUrl").value = url;
 }
 
-/* ===== コピー処理 ===== */
 function copyUrl() {
   navigator.clipboard.writeText(
     document.getElementById("generatedUrl").value
@@ -362,7 +327,18 @@ function loadFromUrl() {
   generate();
 }
 
-/* 入力が変わるたびにgenerate実行 */
+/* ===== ここが今回の追加部分 ===== */
+function applyMode() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("mode") === "embed") {
+    document.getElementById("mainContainer").style.display = "none";
+    document.body.style.padding = "40px";
+    document.body.style.display = "flex";
+    document.body.style.justifyContent = "center";
+    document.body.appendChild(preview);
+  }
+}
+
 document.querySelectorAll("input, select, textarea").forEach(el=>{
   el.addEventListener("input", generate);
 });
@@ -380,11 +356,11 @@ document.querySelectorAll("input, select, textarea").forEach(el=>{
   });
 });
 
-/* 初期表示時に一度実行 */
 generate();
 loadFromUrl();
+applyMode();
+
 </script>
 
 </body>
 </html>
-
